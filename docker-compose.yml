@@ -1,0 +1,74 @@
+version: '3'
+
+services:
+
+  mysql_master:
+
+    image: mysql
+
+    env_file:
+
+      - ./Master/Mysql_Master.env
+
+    container_name: "Mysql_master"
+
+
+    ports:
+
+      - 4406:3306
+
+    volumes:
+
+      - ./Master/Configuration/mysql.conf.cnf:/etc/mysql/conf.d/mysql.conf.cnf
+
+      - ./Master/data:/var/lib/mysql
+
+  mysql_slave:
+
+    image: mysql
+
+    env_file:
+
+      - ./Slave/Mysql_Slave.env
+
+    container_name: "mysql_slave"
+
+
+    ports:
+
+      - 5506:3306
+
+    depends_on:
+
+      - mysql_master
+
+    volumes:
+
+      - ./Slave/Configuration/mysql.conf.cnf:/etc/mysql/conf.d/mysql.conf.cnf
+
+      - ./Slave/data:/var/lib/mysql
+
+  CheckerMySql:
+
+    image: checker
+
+    build:
+
+      context: .
+
+      dockerfile: .\Dockerfile
+
+    ports:
+
+      - 3001:3001
+
+    volumes:
+
+          - ./db-data:/var/lib/mysql
+          - ./output:/output
+
+    depends_on:
+
+      - mysql_master
+
+      - mysql_slave
